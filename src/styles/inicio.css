@@ -1,0 +1,46 @@
+.inicio {
+  margin-top: 160px; /* para evitar que el navbar tape */
+  padding: 4rem 2rem;
+  background-color: #e6f0f5;
+  color: #002244;
+  text-align: center;
+}
+
+.inicio-contenido {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.inicio h1 {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+  color: #002244;
+}
+
+.inicio h2 {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #002244;
+}
+
+.inicio p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #444;
+  margin-bottom: 150px;
+}
+
+/* Responsive: texto más chico en celulares */
+@media (max-width: 768px) {
+  .inicio h1 {
+    font-size: 2rem;
+  }
+
+  .inicio h2 {
+    font-size: 1.4rem;
+  }
+
+  .inicio p {
+    font-size: 1rem;
+  }
+}
