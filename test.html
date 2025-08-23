@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Test Inserción Visita</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  button { padding: 10px 15px; font-size: 16px; cursor: pointer; }
+  pre { background: #f0f0f0; padding: 10px; }
+</style>
+</head>
+<body>
+
+<h2>Test: Insertar visita</h2>
+<p>Haz click para enviar una visita de prueba al backend.</p>
+<button onclick="testInsert()">Insertar visita de prueba</button>
+
+<pre id="output"></pre>
+
+<script>
+async function testInsert() {
+  const output = document.getElementById("output");
+
+  try {
+    const response = await fetch("http://localhost:3001/api/visits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        password: "admin",  // 🔹 Cambiar por la contraseña real
+        plate: "ABC123",
+        visit_date: "2025-08-19",
+        service: "Lavado rápido",
+        product: "Shampoo test"
+      })
+    });
+
+    const data = await response.json();
+    output.textContent = JSON.stringify(data, null, 2);
+    console.log(data);
+  } catch (err) {
+    console.error(err);
+    output.textContent = "Error en la inserción: " + err.message;
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,169 @@
+.visitas {
+  margin-top: 180px;
+  margin-bottom: 120px;
+  padding: 4rem 2rem;
+  background-color: #e6f0f5;
+  text-align: center;
+}
+
+.visitas h1 {
+  font-size: 2.5rem;
+  color: #002244;
+  margin-bottom: 60px;
+}
+
+.inputGroup {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.inputGroup input[type="text"] {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 300px;
+  max-width: 100%;
+}
+
+.inputGroup button {
+  padding: 0.75rem 1.5rem;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.inputGroup button:hover {
+  background-color: #135ba1;
+}
+
+.message {
+  color: red;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.tabla-visitas {
+  max-width: 1200px;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.tabla-visitas table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-visitas th,
+.tabla-visitas td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.tabla-visitas th {
+  background-color: #f5f5f5;
+  color: #003366;
+}
+
+.tabla-visitas td {
+  color: #333;
+}
+
+/* 🔽 Estilos para móviles */
+@media (max-width: 768px) {
+  .visitas {
+    margin-top: 100px;
+    padding: 2rem 1rem;
+  }
+
+  .inputGroup {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .inputGroup input,
+  .inputGroup button {
+    width: 100%;
+    max-width: 300px;
+  }
+
+  /* 🔽 Convierte la tabla en bloques tipo "cards" */
+  .tabla-visitas table,
+  .tabla-visitas thead,
+  .tabla-visitas tbody,
+  .tabla-visitas th,
+  .tabla-visitas td,
+  .tabla-visitas tr {
+    display: block;
+    width: 100%;
+  }
+
+  .tabla-visitas thead {
+    display: none; /* ocultamos encabezados */
+  }
+
+  .tabla-visitas tr {
+    margin-bottom: 2.5rem;
+    border: 1px solid #d6d6d6;
+    padding: 1rem;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+  }
+
+  .tabla-visitas td {
+    padding: 0.5rem 0;
+    text-align: left;
+    border: none;
+    position: relative;
+  }
+
+  .tabla-visitas td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    display: block;
+    color: #003366;
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Ocultar versión mobile en escritorio */
+.mobile-table {
+  display: none;
+}
+
+/* Estilos para tarjetas móviles */
+.mobile-card {
+  background: #fff;
+  margin: 10px 0;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  text-align: left;
+}
+
+.mobile-card p {
+  margin: 6px 0;
+  color: #333;
+}
+
+/* Mostrar versión mobile y ocultar tabla en pantallas chicas */
+@media (max-width: 768px) {
+  .desktop-table {
+    display: none;
+  }
+  .mobile-table {
+    display: block;
+  }
+}
+

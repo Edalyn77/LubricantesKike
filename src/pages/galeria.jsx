@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import "../styles/galeria.css"
+import "../styles/galeria.css";
 
 import img1 from '../assets/galeria/lav1.png';
 import img2 from '../assets/galeria/lav2.png';
 import img3 from '../assets/galeria/lav3.png';
+import img4 from '../assets/galeria/lav4.png';
+import img5 from '../assets/galeria/lav5.png';
+import img6 from '../assets/galeria/lav6.png';
+import img7 from '../assets/galeria/lav7.png';
 
-const imagenes = [img1, img2, img3];
+const imagenes = [img1, img2, img3, img4, img5, img6, img7];
 
 const Galeria = () => {
   const [index, setIndex] = useState(0);
 
-  const irA = (i) => setIndex(i);
   const siguiente = () => setIndex((prev) => (prev + 1) % imagenes.length);
   const anterior = () => setIndex((prev) => (prev - 1 + imagenes.length) % imagenes.length);
+  const irA = (i) => setIndex(i);
 
-  // autoplay cada 4s
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % imagenes.length);
-    }, 6000);
+    }, 4500);
     return () => clearInterval(timer);
   }, []);
 
@@ -30,7 +33,21 @@ const Galeria = () => {
       <div className="carrusel">
         <button className="btn-carrusel izquierda" onClick={anterior}>‹</button>
 
-        <img src={imagenes[index]} alt={`galeria-${index + 1}`} className="imagen-galeria" />
+        <div className="carrusel-ventana">
+          <div
+            className="carrusel-slider"
+            style={{ transform: `translateX(-${index * 100}%)` }}
+          >
+            {imagenes.map((img, i) => (
+              <img
+                key={i}
+                src={img}
+                alt={`galeria-${i + 1}`}
+                className="imagen-slide"
+              />
+            ))}
+          </div>
+        </div>
 
         <button className="btn-carrusel derecha" onClick={siguiente}>›</button>
 

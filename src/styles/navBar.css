@@ -28,7 +28,7 @@
   
   .menu-toggle {
     position: absolute;
-    left: 0rem;
+    left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     display: none;
