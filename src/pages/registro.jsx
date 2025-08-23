@@ -1,104 +1,77 @@
-import React, { useState } from "react";
-import "../styles/registro.css";
+import { useState } from "react";
 
-const RegistroVisitas = () => {
-  const [patente, setPatente] = useState("");
-  const [visitas, setVisitas] = useState([]);
-  const [mensaje, setMensaje] = useState("");
+export default function Registro() {
+  const [form, setForm] = useState({
+    name: "",
+    dni: "",
+    plate: "",
+    visitDate: "",
+  });
 
-  const buscarVisitas = async () => {
-    const patenteTrimmed = patente
-      .trim()
-      .toUpperCase()
-      .replace(/[^A-Z0-9-]/g, "")
-      .slice(0, 7);
+  const [message, setMessage] = useState("");
 
-    if (!patenteTrimmed) {
-      setMensaje("Por favor ingresa tu placa.");
-      setVisitas([]);
-      return;
-    }
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; 
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
     try {
-      const response = await fetch(
-        `http://localhost:3001/api/visits?plate=${patenteTrimmed}`
-      );
-      if (!response.ok) throw new Error("Error en el servidor");
-      const data = await response.json();
+      const res = await fetch(`${backendUrl}/api/visits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
 
-      if (data.length === 0) {
-        setMensaje("No se encontraron visitas para esa placa.");
-        setVisitas([]);
+      if (res.ok) {
+        setMessage("✅ Visita registrada con éxito");
+        setForm({ name: "", dni: "", plate: "", visitDate: "" });
       } else {
-        setMensaje("");
-        setVisitas(data);
+        setMessage("❌ Error al registrar visita");
       }
     } catch (error) {
-      console.error(error);
-      setMensaje("Error al conectar con el servidor.");
-      setVisitas([]);
+      console.error("Error:", error);
+      setMessage("❌ No se pudo conectar con el servidor");
     }
   };
 
   return (
-    <div className="visitas">
-      <h1>Consulta tus Visitas</h1>
-
-      <div className="inputGroup">
+    <div>
+      <h2>Registrar Visita</h2>
+      <form onSubmit={handleSubmit}>
         <input
           type="text"
-          placeholder="Ingresa tu placa"
-          value={patente}
-          maxLength={7}
-          onChange={(e) =>
-            setPatente(
-              e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 7)
-            )
-          }
+          name="name"
+          placeholder="Nombre"
+          value={form.name}
+          onChange={handleChange}
         />
-        <button onClick={buscarVisitas}>Buscar</button>
-      </div>
-
-      {mensaje && <p className="message">{mensaje}</p>}
-
-      {/* Tabla escritorio */}
-      {visitas.length > 0 && (
-        <div className="tabla-visitas desktop-table">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Servicio</th>
-                <th>Producto</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visitas.map((v) => (
-                <tr key={v.id}>
-                  <td>{v.visit_date}</td>
-                  <td>{v.service}</td>
-                  <td>{v.product}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Versión móvil */}
-      {visitas.length > 0 && (
-        <div className="mobile-table">
-          {visitas.map((v) => (
-            <div key={v.id} className="mobile-card">
-              <p><strong>Fecha:</strong> {v.visit_date}</p>
-              <p><strong>Servicio:</strong> {v.service}</p>
-              <p><strong>Producto:</strong> {v.product}</p>
-            </div>
-          ))}
-        </div>
-      )}
+        <input
+          type="text"
+          name="dni"
+          placeholder="DNI"
+          value={form.dni}
+          onChange={handleChange}
+        />
+        <input
+          type="text"
+          name="plate"
+          placeholder="Patente"
+          value={form.plate}
+          onChange={handleChange}
+        />
+        <input
+          type="date"
+          name="visitDate"
+          value={form.visitDate}
+          onChange={handleChange}
+        />
+        <button type="submit">Registrar</button>
+      </form>
+      {message && <p>{message}</p>}
     </div>
   );
-};
-
-export default RegistroVisitas;
+}
