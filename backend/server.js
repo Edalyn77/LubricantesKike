@@ -5,10 +5,15 @@ const db = require("./db");
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+
+// 🔐 Configuración CORS para tu frontend en Render
+const corsOptions = {
+  origin: "https://lubricantes-kike.onrender.com", // tu frontend
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 
 const adminPassword = process.env.ADMIN_PASSWORD;
-
 
 // Test
 app.get("/api/test", (req, res) => {
@@ -22,7 +27,7 @@ app.post("/api/admin/check", (req, res) => {
   return res.status(403).json({ error: "Contraseña incorrecta" });
 });
 
-// Middleware para admin
+// Middleware para rutas admin
 function checkAdmin(req, res, next) {
   const { password } = req.body;
   if (!password || password !== adminPassword) {
