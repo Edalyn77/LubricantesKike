@@ -4,14 +4,17 @@ const cors = require("cors");
 const db = require("./db");
 
 const app = express();
-app.use(express.json());
 
-// 🔐 Configuración CORS para tu frontend en Render
-const corsOptions = {
-  origin: "https://lubricantes-kike.onrender.com", // tu frontend
-  optionsSuccessStatus: 200,
-};
-app.use(cors(corsOptions));
+// Configurá la URL de tu frontend en Render
+const frontendUrl = "https://lubricantes-kike.onrender.com";
+
+app.use(express.json());
+app.use(cors({
+  origin: frontendUrl, 
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+  credentials: true
+}));
 
 const adminPassword = process.env.ADMIN_PASSWORD;
 
@@ -20,14 +23,7 @@ app.get("/api/test", (req, res) => {
   res.json({ message: "Backend y DB listos 🚀" });
 });
 
-// Verificar contraseña
-app.post("/api/admin/check", (req, res) => {
-  const { password } = req.body;
-  if (password === adminPassword) return res.json({ ok: true });
-  return res.status(403).json({ error: "Contraseña incorrecta" });
-});
-
-// Middleware para rutas admin
+// Middleware de verificación de admin
 function checkAdmin(req, res, next) {
   const { password } = req.body;
   if (!password || password !== adminPassword) {
@@ -43,6 +39,13 @@ function normalizePlate(plate) {
     .replace(/[^A-Z0-9-]/g, "")
     .slice(0, 7);
 }
+
+// Verificar contraseña
+app.post("/api/admin/check", (req, res) => {
+  const { password } = req.body;
+  if (password === adminPassword) return res.json({ ok: true });
+  return res.status(403).json({ error: "Contraseña incorrecta" });
+});
 
 // Obtener visitas
 app.get("/api/visits", (req, res) => {
@@ -95,7 +98,7 @@ app.post("/api/visits", checkAdmin, (req, res) => {
   }
 });
 
-// Editar visita
+// Editar visita 
 app.put("/api/visits/:id", checkAdmin, (req, res) => {
   try {
     const { id } = req.params;
@@ -143,6 +146,7 @@ app.delete("/api/visits/:id", checkAdmin, (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
+
 app.listen(PORT, () => {
   console.log(`API on :${PORT}`);
 });
