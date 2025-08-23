@@ -6,7 +6,7 @@ const db = require("./db");
 const app = express();
 
 // Configurá la URL de tu frontend en Render
-const frontendUrl = "https://lubricantes-kike.onrender.com";
+const frontendUrl = "https://lubricanteskike.onrender.com";
 
 app.use(express.json());
 app.use(cors({
