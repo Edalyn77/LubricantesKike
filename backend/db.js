@@ -1,35 +1,67 @@
 // db.js
 // ========================
-// Conexión a SQLite y creación de tabla "visits"
+// Conexión a MongoDB Atlas (reemplaza a SQLite)
 
-const Database = require("better-sqlite3");
+require("dotenv").config();
+const mongoose = require("mongoose");
 
-// Abro (o creo) el archivo lavadero.db en la carpeta backend
-const db = new Database("lavadero.db");
+// URI desde .env
+const MONGODB_URI = process.env.MONGODB_URI;
 
-// Creo la tabla si no existe
-db.exec(`
-  CREATE TABLE IF NOT EXISTS visits (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    plate TEXT NOT NULL
-      CHECK(plate = TRIM(UPPER(plate)))
-      CHECK(
-        -- Patrones de placas peruanas comunes
-        plate GLOB '[A-Z][A-Z][A-Z]-[0-9][0-9][0-9]'      -- ABC-123
-        OR plate GLOB '[A-Z][A-Z][0-9]-[0-9][0-9][0-9]'   -- AB1-234
-        OR plate GLOB '[A-Z][0-9][A-Z]-[0-9][0-9][0-9]'   -- A1B-234
-        OR plate GLOB '[A-Z][A-Z]-[0-9][0-9][0-9][0-9]'   -- AB-1234 (motos)
-      ),
-    visit_date TEXT NOT NULL
-      CHECK (length(visit_date) = 10 AND date(visit_date) IS NOT NULL), -- YYYY-MM-DD
-    service TEXT NOT NULL CHECK (length(TRIM(service)) >= 2),
-    product TEXT NOT NULL CHECK (length(TRIM(product)) >= 2),
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
+if (!MONGODB_URI) {
+  console.error("❌ ERROR: MONGODB_URI no está definida en el archivo .env");
+  process.exit(1);
+}
 
-  CREATE INDEX IF NOT EXISTS idx_visits_plate_date
-    ON visits (plate, visit_date);
-`);
+// Conexión a MongoDB
+mongoose
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ Conectado a MongoDB Atlas"))
+  .catch((err) => {
+    console.error("❌ Error al conectar a MongoDB:", err);
+    process.exit(1);
+  });
 
-// Exporto la conexión para usar en otros archivos
-module.exports = db;
+// Esquema de la colección "visits"
+const visitSchema = new mongoose.Schema({
+  plate: {
+    type: String,
+    required: true,
+    trim: true,
+    uppercase: true,
+    match: [
+      /^[A-Z0-9-]{2,8}$/,
+      "Formato de placa inválido (solo letras, números y guion)",
+    ],
+  },
+  visit_date: {
+    type: String,
+    required: true,
+    validate: {
+      validator: (v) => /^\d{4}-\d{2}-\d{2}$/.test(v),
+      message: "Fecha inválida (debe ser YYYY-MM-DD)",
+    },
+  },
+  service: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 2,
+  },
+  product: {
+    type: String,
+    default: null,
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Modelo
+const Visit = mongoose.model("Visit", visitSchema);
+
+module.exports = Visit;

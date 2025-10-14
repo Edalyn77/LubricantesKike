@@ -10,8 +10,8 @@ const RegistroVisitas = () => {
     const patenteTrimmed = patente
       .trim()
       .toUpperCase()
-      .replace(/[^A-Z0-9-]/g, "")
-      .slice(0, 7);
+      .replace(/[^A-Z0-9-]/g, "") // Solo letras, números y guion
+      .slice(0, 7); // Limitar a 7 caracteres (ej: 8806-KM)
 
     if (!patenteTrimmed) {
       setMensaje("Por favor ingresa tu placa.");
@@ -47,7 +47,7 @@ const RegistroVisitas = () => {
       <div className="inputGroup">
         <input
           type="text"
-          placeholder="Ingresa tu placa"
+          placeholder="Ingresa tu placa (ej: 8806-KM)"
           value={patente}
           maxLength={7}
           onChange={(e) =>
@@ -77,7 +77,7 @@ const RegistroVisitas = () => {
                 <tr key={v.id}>
                   <td>{v.visit_date}</td>
                   <td>{v.service}</td>
-                  <td>{v.product}</td>
+                  <td>{v.product || ""}</td> {/* Permitir vacío o símbolos */}
                 </tr>
               ))}
             </tbody>
@@ -92,7 +92,7 @@ const RegistroVisitas = () => {
             <div key={v.id} className="mobile-card">
               <p><strong>Fecha:</strong> {v.visit_date}</p>
               <p><strong>Servicio:</strong> {v.service}</p>
-              <p><strong>Producto:</strong> {v.product}</p>
+              <p><strong>Producto:</strong> {v.product || ""}</p>
             </div>
           ))}
         </div>

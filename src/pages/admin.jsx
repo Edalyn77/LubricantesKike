@@ -46,8 +46,11 @@ export default function Admin() {
     if (name === "plate") {
       const val = value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 7);
       setForm({ ...form, [name]: val });
-    } else if (name === "service" || name === "product") {
+    } else if (name === "service") {
       const val = value.replace(/[^A-Za-z0-9 ]/g, "").slice(0, 50);
+      setForm({ ...form, [name]: val });
+    } else if (name === "product") {
+      const val = value.slice(0, 50); // permite cualquier símbolo y vacío
       setForm({ ...form, [name]: val });
     } else {
       setForm({ ...form, [name]: value });
@@ -56,8 +59,8 @@ export default function Admin() {
 
   // Crear o editar visita
   const saveVisit = async () => {
-    if (!form.plate || !form.visit_date || !form.service || !form.product) {
-      alert("Todos los campos son obligatorios");
+    if (!form.plate || !form.visit_date || !form.service) {
+      alert("Placa, fecha y servicio son obligatorios");
       return;
     }
 
@@ -94,7 +97,9 @@ export default function Admin() {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/visits`);
       if (res.ok) {
         const data = await res.json();
-        setVisits(data);
+        // Transformar _id de MongoDB a id para que React lo use
+        const visitsWithId = data.map(v => ({ ...v, id: v._id || v.id }));
+        setVisits(visitsWithId);
       }
     } catch (err) {
       console.error(err);
@@ -103,6 +108,7 @@ export default function Admin() {
 
   // Eliminar visita
   const deleteVisit = async (id) => {
+    if (!id) return; // seguridad
     try {
       const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/visits/${id}`, {
         method: "DELETE",
@@ -192,7 +198,7 @@ export default function Admin() {
             <input
               type="text"
               name="product"
-              placeholder="Producto"
+              placeholder="Producto (opcional)"
               value={form.product}
               onChange={handleChange}
             />
