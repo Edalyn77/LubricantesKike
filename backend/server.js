@@ -1,3 +1,4 @@
+// server.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -8,30 +9,31 @@ const app = express();
 // URL del frontend
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
-// Configuración de CORS
+app.use(express.json());
+
+// Configuración CORS para frontend en Render
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || origin === frontendUrl) {
-      callback(null, true);
-    } else {
-      callback(new Error("No permitido por CORS"));
-    }
-  },
+  origin: frontendUrl,
   methods: ["GET","POST","PUT","DELETE","OPTIONS"],
   allowedHeaders: ["Content-Type"],
-  credentials: true,
+  credentials: true
 }));
 
-app.use(express.json());
+// Permitir preflight requests
+app.options("*", cors({
+  origin: frontendUrl,
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+  credentials: true
+}));
 
 // Contraseña de administrador desde .env
 const adminPassword = process.env.ADMIN_PASSWORD;
 if (!adminPassword)
-  console.warn("⚠️  WARNING: ADMIN_PASSWORD no está definida en .env");
+  console.warn("⚠️ WARNING: ADMIN_PASSWORD no está definida en .env");
 
 // Middleware para verificar contraseña de admin
 function checkAdmin(req, res, next) {
-  if (req.method === "OPTIONS") return next(); // permite preflight
   const { password } = req.body;
   if (!password || password !== adminPassword) {
     return res.status(403).json({ error: "Contraseña incorrecta" });
@@ -67,10 +69,7 @@ app.get("/api/visits", async (req, res) => {
 
     if (raw) {
       const normalized = normalizePlate(raw);
-      visits = await Visit.find({ plate: normalized }).sort({
-        visit_date: -1,
-        _id: -1,
-      });
+      visits = await Visit.find({ plate: normalized }).sort({ visit_date: -1, _id: -1 });
     } else {
       visits = await Visit.find().sort({ visit_date: -1, _id: -1 });
     }
@@ -88,9 +87,7 @@ app.post("/api/visits", checkAdmin, async (req, res) => {
     let { plate, visit_date, service, product } = req.body;
 
     if (!plate || !visit_date || !service) {
-      return res
-        .status(400)
-        .json({ error: "Placa, fecha y servicio son obligatorios" });
+      return res.status(400).json({ error: "Placa, fecha y servicio son obligatorios" });
     }
 
     plate = normalizePlate(plate);
@@ -114,9 +111,7 @@ app.put("/api/visits/:id", checkAdmin, async (req, res) => {
     let { plate, visit_date, service, product } = req.body;
 
     if (!plate || !visit_date || !service) {
-      return res
-        .status(400)
-        .json({ error: "Placa, fecha y servicio son obligatorios" });
+      return res.status(400).json({ error: "Placa, fecha y servicio son obligatorios" });
     }
 
     plate = normalizePlate(plate);
@@ -129,8 +124,7 @@ app.put("/api/visits/:id", checkAdmin, async (req, res) => {
       { new: true }
     );
 
-    if (!updated)
-      return res.status(404).json({ error: "Visita no encontrada" });
+    if (!updated) return res.status(404).json({ error: "Visita no encontrada" });
 
     res.json({ message: "Visita editada correctamente", visit: updated });
   } catch (err) {
@@ -145,8 +139,7 @@ app.delete("/api/visits/:id", checkAdmin, async (req, res) => {
     const { id } = req.params;
     const deleted = await Visit.findByIdAndDelete(id);
 
-    if (!deleted)
-      return res.status(404).json({ error: "Visita no encontrada" });
+    if (!deleted) return res.status(404).json({ error: "Visita no encontrada" });
 
     res.json({ message: "Visita eliminada correctamente" });
   } catch (err) {
