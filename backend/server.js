@@ -1,32 +1,37 @@
-// server.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const mongoose = require("mongoose");
-const Visit = require("./db"); // tu modelo Visit
+const Visit = require("./db");
 
 const app = express();
 
-// FRONTEND_URL definido en .env
-const frontendUrl = process.env.FRONTEND_URL;
+// URL del frontend
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
-// Middleware
+// Configuración de CORS
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || origin === frontendUrl) {
+      callback(null, true);
+    } else {
+      callback(new Error("No permitido por CORS"));
+    }
+  },
+  methods: ["GET","POST","PUT","DELETE","OPTIONS"],
+  allowedHeaders: ["Content-Type"],
+  credentials: true,
+}));
+
 app.use(express.json());
-app.use(
-  cors({
-    origin: frontendUrl, // permite solo tu frontend
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type"],
-    credentials: true,
-  })
-);
 
-// Contraseña de administrador
+// Contraseña de administrador desde .env
 const adminPassword = process.env.ADMIN_PASSWORD;
-if (!adminPassword) console.warn("⚠️  WARNING: ADMIN_PASSWORD no está definida en .env");
+if (!adminPassword)
+  console.warn("⚠️  WARNING: ADMIN_PASSWORD no está definida en .env");
 
-// Middleware de verificación de admin
+// Middleware para verificar contraseña de admin
 function checkAdmin(req, res, next) {
+  if (req.method === "OPTIONS") return next(); // permite preflight
   const { password } = req.body;
   if (!password || password !== adminPassword) {
     return res.status(403).json({ error: "Contraseña incorrecta" });
@@ -34,7 +39,7 @@ function checkAdmin(req, res, next) {
   next();
 }
 
-// Normalizar placa
+// Normaliza las patentes (mayúsculas, sin espacios, solo letras/números/guion)
 function normalizePlate(plate) {
   return String(plate || "")
     .toUpperCase()
@@ -42,26 +47,19 @@ function normalizePlate(plate) {
     .slice(0, 8);
 }
 
-// Conexión a MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ Conectado a MongoDB"))
-  .catch((err) => {
-    console.error("❌ Error al conectar a MongoDB:", err);
-    process.exit(1); // cierra la app si falla la conexión
-  });
-
-// Rutas
+// Ruta de prueba
 app.get("/api/test", (req, res) => {
   res.json({ message: "✅ Backend y MongoDB funcionando correctamente" });
 });
 
+// Verifica si la contraseña de admin es correcta
 app.post("/api/admin/check", (req, res) => {
   const { password } = req.body;
   if (password === adminPassword) return res.json({ ok: true });
   return res.status(403).json({ error: "Contraseña incorrecta" });
 });
 
+// Obtiene todas las visitas o busca por placa
 app.get("/api/visits", async (req, res) => {
   try {
     const raw = (req.query.plate || "").trim();
@@ -69,7 +67,10 @@ app.get("/api/visits", async (req, res) => {
 
     if (raw) {
       const normalized = normalizePlate(raw);
-      visits = await Visit.find({ plate: normalized }).sort({ visit_date: -1, _id: -1 });
+      visits = await Visit.find({ plate: normalized }).sort({
+        visit_date: -1,
+        _id: -1,
+      });
     } else {
       visits = await Visit.find().sort({ visit_date: -1, _id: -1 });
     }
@@ -81,12 +82,15 @@ app.get("/api/visits", async (req, res) => {
   }
 });
 
+// Crea una nueva visita
 app.post("/api/visits", checkAdmin, async (req, res) => {
   try {
     let { plate, visit_date, service, product } = req.body;
 
     if (!plate || !visit_date || !service) {
-      return res.status(400).json({ error: "Placa, fecha y servicio son obligatorios" });
+      return res
+        .status(400)
+        .json({ error: "Placa, fecha y servicio son obligatorios" });
     }
 
     plate = normalizePlate(plate);
@@ -103,13 +107,16 @@ app.post("/api/visits", checkAdmin, async (req, res) => {
   }
 });
 
+// Edita una visita existente
 app.put("/api/visits/:id", checkAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     let { plate, visit_date, service, product } = req.body;
 
     if (!plate || !visit_date || !service) {
-      return res.status(400).json({ error: "Placa, fecha y servicio son obligatorios" });
+      return res
+        .status(400)
+        .json({ error: "Placa, fecha y servicio son obligatorios" });
     }
 
     plate = normalizePlate(plate);
@@ -122,7 +129,8 @@ app.put("/api/visits/:id", checkAdmin, async (req, res) => {
       { new: true }
     );
 
-    if (!updated) return res.status(404).json({ error: "Visita no encontrada" });
+    if (!updated)
+      return res.status(404).json({ error: "Visita no encontrada" });
 
     res.json({ message: "Visita editada correctamente", visit: updated });
   } catch (err) {
@@ -131,12 +139,14 @@ app.put("/api/visits/:id", checkAdmin, async (req, res) => {
   }
 });
 
+// Elimina una visita
 app.delete("/api/visits/:id", checkAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const deleted = await Visit.findByIdAndDelete(id);
 
-    if (!deleted) return res.status(404).json({ error: "Visita no encontrada" });
+    if (!deleted)
+      return res.status(404).json({ error: "Visita no encontrada" });
 
     res.json({ message: "Visita eliminada correctamente" });
   } catch (err) {
@@ -145,6 +155,6 @@ app.delete("/api/visits/:id", checkAdmin, async (req, res) => {
   }
 });
 
-// Puerto
+// Inicia el servidor
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
